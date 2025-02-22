@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "parser"
+version = "0.1.0"
+description = ""
+authors = ["ArtemZhdanovich <artem.zhdanboro@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+aiohttp = "^3.11.12"
+sqlalchemy = "^2.0.38"
+pydantic = "^2.10.6"
+dishka = "^1.4.2"
+lxml = "^5.3.1"
+beautifulsoup4 = "^4.13.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
