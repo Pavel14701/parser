@@ -44,9 +44,8 @@ class Chars:
 @dataclass(slots=True)
 class ObjectDm:
     active: bool
-    id: int
+    id: Optional[int]
     url: str
-    address: str
     address_desc: Address 
     title: str
     price: int

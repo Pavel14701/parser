@@ -13,6 +13,13 @@ class HttpParser(Protocol):
         ...
 
 
+class DataExtractor(Protocol):
+
+    @abstractmethod
+    async def extract_data(self, data: str) -> entities.ObjectDm:
+        ...
+
+
 class SaveObject(Protocol):
 
     @abstractmethod

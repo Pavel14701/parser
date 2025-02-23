@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 
 @dataclass(slots=True)
@@ -17,8 +17,11 @@ class Cookies:
     authToken: Optional[str]
     realt_user: Optional[str]
 
+    def to_dict(self):
+        return {k: v for k, v in asdict(self).items() if v is not None}
+
 
 @dataclass(slots=True)
 class RequestParam:
     url: str
-    headers: str
+    headers: dict[str, str]
