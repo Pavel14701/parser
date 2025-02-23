@@ -6,15 +6,14 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from app.src.config import DbConfig
 
 
-def new_session_maker(psql_config: DbConfig) -> async_sessionmaker[AsyncSession]:
+def new_session_maker(config: DbConfig) -> async_sessionmaker[AsyncSession]:
     database_uri = "postgresql+psycopg://{login}:{password}@{host}:{port}/{database}".format(
-        login=psql_config.login,
-        password=psql_config.password,
-        host=psql_config.host,
-        port=psql_config.port,
-        database=psql_config.database,
+        login=config.login,
+        password=config.password,
+        host=config.host,
+        port=config.port,
+        database=config.database,
     )
-
     engine = create_async_engine(
         database_uri,
         pool_size=15,
