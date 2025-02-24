@@ -29,7 +29,7 @@ class Chars:
     build_type: str
     year_of_build: int
     floor: Optional[int] = None
-    floor_numb: Optional[int] = None
+    floors_numb: Optional[int] = None
     rooms: int
     separated_rooms: int
     all_separated_rooms: bool
@@ -46,7 +46,7 @@ class Chars:
 class ObjectDm(Address, Price, Chars):
     active: bool
     id: Optional[int] = None
-    url: str
+    url: Optional[str] = None
     title: str
     description: str
     pictures: list[Optional[str]]
