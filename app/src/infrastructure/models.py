@@ -26,9 +26,9 @@ class Object(Base):
     micro_region: Mapped[Optional[str]] = mapped_column("micro_region", sa.String(60), nullable=True)
     latitude: Mapped[Decimal] = mapped_column("latitude", sa.Numeric(2,7))
     longitude: Mapped[Decimal] = mapped_column("longitude", sa.Numeric(2,7))
-    price_byn: Mapped[int] = mapped_column("price_byn", sa.Integer)
-    price_usd: Mapped[int] = mapped_column("price_usd", sa.Integer)
-    price_m2: Mapped[Optional[int]] = mapped_column("price_m2", sa.Integer, nullable=True)
+    price_byn: Mapped[Decimal] = mapped_column("price_byn", sa.Numeric(10,1))
+    price_usd: Mapped[Decimal] = mapped_column("price_usd", sa.Numeric(10,1))
+    price_m2: Mapped[Optional[Decimal]] = mapped_column("price_m2", sa.Numeric(5,4), nullable=True)
     build_type: Mapped[str] = mapped_column("build_type", sa.String(length=20))
     yeaor_of_build: Mapped[int] = mapped_column("year_od_buid", sa.Integer)
     floor: Mapped[Optional[int]] = mapped_column("floor", sa.Integer, nullable=True)
@@ -36,7 +36,7 @@ class Object(Base):
     rooms: Mapped[int] = mapped_column("rooms", sa.Integer)
     separated_rooms: Mapped[int] = mapped_column("separated_rooms", sa.Integer)
     all_separated_rooms: Mapped[str] = mapped_column("all_separated_rooms",sa.Boolean)
-    area: Mapped[Decimal] = mapped_column("area", sa.Numeric(4,2))
+    area: Mapped[Decimal] = mapped_column("area", sa.Numeric(6,2))
     living_area: Mapped[Decimal] = mapped_column("living_area", sa.Numeric(4,2))
     kitchen_area: Mapped[Decimal] = mapped_column("kitchen_area", sa.Numeric(4,2))
     repair: Mapped[Optional[str]] = mapped_column("repair", sa.String(length=50), nullable=True)
@@ -46,8 +46,8 @@ class Object(Base):
 
 
 
-class PhotosRelationship(Base):
-    __tablename__ = "objects_photos_relationship"
+class Photos(Base):
+    __tablename__ = "objects_photos"
     photo_id: Mapped[int] = mapped_column("photo_id_pk", sa.BigInteger, primary_key=True)
     object_id: Mapped[int] = mapped_column("object_id", sa.Integer)
     url: Mapped[str] = mapped_column("url", sa.String(length=255))

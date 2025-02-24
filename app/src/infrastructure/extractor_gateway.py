@@ -71,7 +71,7 @@ class DataExtracorGateway(interfaces.DataExtractor):
         if dirty_usd_str := soup.find('span', class_='text-subhead'):
             price_usd_str:str = dirty_usd_str.text
             price_usd_str = price_usd_str.strip()
-            price_usd = int(re.sub(r'\D', '', price_usd_str))
+            price_usd = Decimal(re.sub(r'\D', '', price_usd_str))
         else:
             price_usd = None
         return entities.Price(
@@ -110,9 +110,9 @@ class DataExtracorGateway(interfaces.DataExtractor):
             rooms=rooms,
             separated_rooms=separated_rooms,
             all_separated_rooms=rooms==separated_rooms,
-            area=float(re.sub(pattern, '', params.get("Ploschad'_obschaja"))),
-            living_area=float(re.sub(pattern, '', params.get("Ploschad'_zhilaja"))),
-            kitchen_area=float(re.sub(pattern, '', params.get("Ploschad'_kuhni"))),
+            area=Decimal(re.sub(pattern, '', params.get("Ploschad'_obschaja"))),
+            living_area=Decimal(re.sub(pattern, '', params.get("Ploschad'_zhilaja"))),
+            kitchen_area=Decimal(re.sub(pattern, '', params.get("Ploschad'_kuhni"))),
             bath=params.get("Sanuzel"),
             balcony=params.get("Balkon"),
             repair=params.get("Remont")

@@ -19,9 +19,9 @@ class Address:
 
 @dataclass(slots=True)
 class Price:
-    price_byn: int
-    price_usd: int
-    price_m2: Optional[int] = None
+    price_byn: Decimal
+    price_usd: Decimal
+    price_m2: Optional[Decimal] = None
 
 
 @dataclass(slots=True)
@@ -33,9 +33,9 @@ class Chars:
     rooms: int
     separated_rooms: int
     all_separated_rooms: bool
-    area: float
-    living_area: float
-    kitchen_area: float
+    area: Decimal
+    living_area: Decimal
+    kitchen_area: Decimal
     repair: Optional[str] = None
     balcony: str
     number_balcony: Optional[str] = None
