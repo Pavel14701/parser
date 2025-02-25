@@ -50,3 +50,19 @@ class ObjectDm(Address, Price, Chars):
     title: str
     description: str
     pictures: list[Optional[str]]
+
+
+@dataclass(slots=True)
+class SearchResultsDm:
+    id: int 
+    title: str 
+    price_usd: Decimal 
+    region: str
+    city: str 
+    street: str 
+    house_number: str
+    area: Decimal 
+    living_area: Decimal
+    kitchen_area: Decimal 
+    floor: int 
+    floors_numb: int

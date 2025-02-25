@@ -15,7 +15,7 @@ class Object(Base):
     __tablename__ = "objects"
     id: Mapped[int] = mapped_column("pk", sa.Integer, primary_key=True, autoincrement=True)
     active: Mapped[bool] = mapped_column("active", sa.Boolean, nullable=False)
-    url: Mapped[bool] = mapped_column("url", sa.String(length=255))
+    url: Mapped[bool] = mapped_column("url", sa.String(length=255), unique=True)
     title: Mapped[str] = mapped_column("title", sa.String(length=255))
     description: Mapped[Optional[str]] = mapped_column("description", sa.String(length=5000), nullable=True)
     region: Mapped[str] = mapped_column("region", sa.String(30))
@@ -43,7 +43,6 @@ class Object(Base):
     balcony: Mapped[Optional[str]] = mapped_column("balcony", sa.String(length=20), nullable=True)
     number_balcony: Mapped[Optional[str]] = mapped_column("number_balcony", sa.String(length=20), nullable=True)
     bath: Mapped[str] = mapped_column("bath", sa.String(length=20))
-
 
 
 class Photos(Base):

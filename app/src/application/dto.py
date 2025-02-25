@@ -2,6 +2,7 @@
 
 from typing import Optional
 from dataclasses import dataclass, asdict
+from decimal import Decimal
 
 
 @dataclass(slots=True)
@@ -25,3 +26,28 @@ class Cookies:
 class RequestParam:
     url: str
     headers: dict[str, str]
+
+@dataclass(slots=True)
+class DbSearchFilters:
+    min_price_usd: Optional[Decimal] = None
+    max_price_usd: Optional[Decimal] = None
+    build_type: Optional[str] = None
+    year_of_build: Optional[int] = None
+    floor: Optional[int] = None
+    floors_numb: Optional[int] = None
+    rooms: Optional[int] = None
+    separated_rooms: Optional[int] = None
+    all_separated_rooms: Optional[bool] = None
+    area: Optional[Decimal] = None
+    living_area: Optional[Decimal] = None
+    kitchen_area: Optional[Decimal] = None
+    repair: Optional[str] = None
+    balcony: Optional[str] = None
+    number_balcony: Optional[str] = None
+    bath: Optional[str] = None
+    region: Optional[str] = None
+    city: Optional[str] = None
+    street: Optional[str] = None
+    house_number: Optional[str] = None
+    city_region: Optional[str] = None
+    micro_region: Optional[str] = None

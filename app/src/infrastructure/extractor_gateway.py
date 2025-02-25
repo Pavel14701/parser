@@ -8,13 +8,10 @@ from transliterate import translit
 from bs4 import BeautifulSoup
 
 from app.src.application import interfaces
-from app.src.application import dto
 from app.src.domain import entities
 
 
 class DataExtracorGateway(interfaces.DataExtractor):
-    def __init__(self) -> None:
-        pass
 
     async def extract_data(self, data: str) -> entities.ObjectDm:
         results = await asyncio.gather(

@@ -4,7 +4,7 @@ from typing import Protocol, Optional
 from abc import abstractmethod
 
 from app.src.domain import entities 
-
+from app.src.application.dto import DbSearchFilters
 
 class HttpParser(Protocol):
 
@@ -27,6 +27,13 @@ class SaveObject(Protocol):
         ...
 
 
+class FindObjects(Protocol):
+
+    @abstractmethod
+    async def save(self, object: DbSearchFilters) -> tuple[entities.SearchResultsDm, ...]:
+        ...
+
+
 class ReadObject(Protocol):
 
     @abstractmethod
@@ -41,7 +48,7 @@ class HttpParser(Protocol):
         ...
 
 
-class DBSession(Protocol):
+class DbSession(Protocol):
 
     @abstractmethod
     async def commit(self) -> None:
