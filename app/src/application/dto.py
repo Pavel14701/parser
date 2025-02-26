@@ -29,8 +29,8 @@ class RequestParam:
 
 @dataclass(slots=True)
 class DbSearchFilters:
-    min_price_usd: Optional[Decimal] = None
-    max_price_usd: Optional[Decimal] = None
+    min_price_usd: Optional[int] = None
+    max_price_usd: Optional[int] = None
     build_type: Optional[str] = None
     year_of_build: Optional[int] = None
     floor: Optional[int] = None

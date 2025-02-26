@@ -19,9 +19,9 @@ class Address:
 
 @dataclass(slots=True)
 class Price:
-    price_byn: Decimal
-    price_usd: Decimal
-    price_m2: Optional[Decimal] = None
+    price_byn: int
+    price_usd: int
+    price_m2: Optional[int] = None
 
 
 @dataclass(slots=True)
@@ -45,7 +45,7 @@ class Chars:
 @dataclass(slots=True)
 class ObjectDm(Address, Price, Chars):
     active: bool
-    id: Optional[int] = None
+    id: Optional[str] = None
     url: Optional[str] = None
     title: str
     description: str
@@ -54,9 +54,9 @@ class ObjectDm(Address, Price, Chars):
 
 @dataclass(slots=True)
 class SearchResultsDm:
-    id: int 
+    id: str 
     title: str 
-    price_usd: Decimal 
+    price_usd: int 
     region: str
     city: str 
     street: str 

@@ -11,27 +11,6 @@ from app.src.application import dto
 from app.src.domain.entities import ObjectDm, SearchResultsDm
 
 
-class HttpParserGateway(interfaces.HttpParser):
-
-    def __init__(self, request_session: ClientSession) -> None:
-        self._request_session = request_session
-
-    async def get_data(
-            self,
-            cookies: Optional[dto.Cookies], 
-            request_params: dto.RequestParam,
-        ) -> str:
-        async with self._request_session.get(
-            url=request_params.url,
-            headers=request_params.headers, 
-            cookies = cookies.to_dict()
-        ) as response:
-            if response.status == 200:
-                return await response.text()
-            else:
-                await response.raise_for_status()
-
-
 class ObjectsGateway(
     interfaces.SaveObject,
     interfaces.ReadObject,
@@ -45,13 +24,13 @@ class ObjectsGateway(
         query = text("""
             WITH inserted_object AS (
                 INSERT INTO objects (
-                    region, city, street, house_number, city_region, micro_region, latitude, longitude,
+                    id, region, city, street, house_number, city_region, micro_region, latitude, longitude,
                     price_byn, price_usd, price_m2,
                     build_type, year_of_build, floor, floors_numb, rooms, separated_rooms, all_separated_rooms,
                     area, living_area, kitchen_area, repair, balcony, number_balcony, bath,
                     active, url, title, description
                 ) VALUES (
-                    :region, :city, :street, :house_number, :city_region, :micro_region, :latitude, :longitude,
+                    :id, :region, :city, :street, :house_number, :city_region, :micro_region, :latitude, :longitude,
                     :price_byn, :price_usd, :price_m2,
                     :build_type, :year_of_build, :floor, :floors_numb, :rooms, :separated_rooms, :all_separated_rooms,
                     :area, :living_area, :kitchen_area, :repair, :balcony, :number_balcony, :bath,
@@ -64,6 +43,7 @@ class ObjectsGateway(
         await self._session.execute(
             statement=query,
             params={
+                "id": object.id,
                 "region": object.region,
                 "city": object.city,
                 "street": object.street,
@@ -97,7 +77,7 @@ class ObjectsGateway(
             }
         )
 
-    async def read(self, id: int) -> Optional[ObjectDm]:
+    async def read_by_id(self, id: int) -> Optional[ObjectDm]:
         query = text("""
             SELECT 
                 object.*, 
@@ -147,8 +127,97 @@ class ObjectsGateway(
             ) if row else None
         )
 
+    async def update_by_url(self, url: str, object: ObjectDm) -> None:
+        query = text("""
+            WITH updated_object AS (
+                UPDATE objects
+                SET
+                    region = :region,
+                    city = :city,
+                    street = :street,
+                    house_number = :house_number,
+                    city_region = :city_region,
+                    micro_region = :micro_region,
+                    latitude = :latitude,
+                    longitude = :longitude,
+                    price_byn = :price_byn,
+                    price_usd = :price_usd,
+                    price_m2 = :price_m2,
+                    build_type = :build_type,
+                    year_of_build = :year_of_build,
+                    floor = :floor,
+                    floors_numb = :floors_numb,
+                    rooms = :rooms,
+                    separated_rooms = :separated_rooms,
+                    all_separated_rooms = :all_separated_rooms,
+                    area = :area,
+                    living_area = :living_area,
+                    kitchen_area = :kitchen_area,
+                    repair = :repair,
+                    balcony = :balcony,
+                    number_balcony = :number_balcony,
+                    bath = :bath,
+                    active = :active,
+                    title = :title,
+                    description = :description
+                WHERE url = :url
+                RETURNING id
+            )
+            DELETE FROM objects_photos
+            WHERE object_id = (SELECT id FROM updated_object);
 
-    async def search_objects(self, filters: dto.DbSearchFilters) -> tuple[SearchResultsDm, ...]:
+            INSERT INTO objects_photos (object_id, url)
+            SELECT (SELECT id FROM updated_object), unnest(:pictures);
+        """)
+        await self._session.execute(
+            statement=query,
+            params={
+                "region": object.region,
+                "city": object.city,
+                "street": object.street,
+                "house_number": object.house_number,
+                "city_region": object.city_region,
+                "micro_region": object.micro_region,
+                "latitude": object.latitude,
+                "longitude": object.longitude,
+                "price_byn": object.price_byn,
+                "price_usd": object.price_usd,
+                "price_m2": object.price_m2,
+                "build_type": object.build_type,
+                "year_of_build": object.year_of_build,
+                "floor": object.floor,
+                "floors_numb": object.floors_numb,
+                "rooms": object.rooms,
+                "separated_rooms": object.separated_rooms,
+                "all_separated_rooms": object.all_separated_rooms,
+                "area": object.area,
+                "living_area": object.living_area,
+                "kitchen_area": object.kitchen_area,
+                "repair": object.repair,
+                "balcony": object.balcony,
+                "number_balcony": object.number_balcony,
+                "bath": object.bath,
+                "active": object.active,
+                "title": object.title,
+                "description": object.description,
+                "url": url,
+                "pictures": object.pictures
+            }
+        )
+
+    async def delete_by_url(self, url: str) -> None:
+        query = text("""
+            WITH deleted_object AS (
+                DELETE FROM objects 
+                WHERE url = :url
+                RETURNING id
+            )
+            DELETE FROM objects_photos
+            WHERE object_id = (SELECT id FROM deleted_object);
+        """)
+        await self._session.execute(statement=query, params={"url": url})
+
+    async def search_objects(self, filters: dto.DbSearchFilters) -> list[SearchResultsDm]:
         query = text("""
             SELECT 
                 id, title, price_usd, region, city, street, house_number,
@@ -205,7 +274,7 @@ class ObjectsGateway(
         }
         result = await self._session.execute(query, params)
         rows = result.fetchall()
-        return tuple(SearchResultsDm(
+        return [SearchResultsDm(
             id=row.id,
             title=row.title,
             price_usd=row.price_usd,
@@ -218,4 +287,4 @@ class ObjectsGateway(
             kitchen_area=row.kitchen_area,
             floor=row.floor,
             floors_numb=row.floors_numb
-        ) for row in rows)
+        ) for row in rows]
