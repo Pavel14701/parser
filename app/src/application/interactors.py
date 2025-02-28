@@ -31,7 +31,7 @@ class GetObjectInteractor:
     ) -> None:
         self._read_gateway = read_gateway
 
-    async def __call__(self, id: int) -> Optional[ObjectDm]:
+    async def __call__(self, id: str) -> Optional[ObjectDm]:
         return await self._read_gateway.read_by_id(id)
 
 

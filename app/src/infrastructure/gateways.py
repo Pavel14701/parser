@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import Optional
-from decimal import Decimal
 
-from aiohttp import ClientSession
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
@@ -81,7 +79,7 @@ class ObjectsGateway(
             }
         )
 
-    async def read_by_id(self, id: int) -> Optional[ObjectDm]:
+    async def read_by_id(self, id: str) -> Optional[ObjectDm]:
         query = text("""
             SELECT 
                 object.*, 
@@ -107,6 +105,7 @@ class ObjectsGateway(
                 all_separated_rooms=row.all_separated_rooms,
                 area=row.area,
                 living_area=row.living_area,
+                kitchen_area=row.kitchen_area,
                 repair=row.repair,
                 balcony=row.balcony,
                 number_balcony=row.number_balcony,
@@ -123,7 +122,7 @@ class ObjectsGateway(
                 latitude=row.latitude,
                 longitude=row.longitude,
                 active=row.active,
-                id=row.id,
+                id=str(row.id),
                 url=row.url,
                 title=row.title,
                 description=row.description,
@@ -222,62 +221,87 @@ class ObjectsGateway(
         await self._session.execute(statement=query, params={"url": url})
 
     async def search_objects(self, filters: dto.DbSearchFilters) -> list[SearchResultsDm]:
-        query = text("""
-            SELECT 
-                id, title, price_usd, region, city, street, house_number,
-                area, living_area, kitchen_area, floor, floors_numb
-            FROM objects
-            WHERE
-                (:min_price_usd IS NULL OR price_usd >= :min_price_usd)
-                AND (:max_price_usd IS NULL OR price_usd <= :max_price_usd)
-                AND (:build_type IS NULL OR build_type = :build_type)
-                AND (:year_of_build IS NULL OR year_of_build = :year_of_build)
-                AND (:floor IS NULL OR floor = :floor)
-                AND (:floors_numb IS NULL OR floors_numb = :floors_numb)
-                AND (:rooms IS NULL OR rooms = :rooms)
-                AND (:separated_rooms IS NULL OR separated_rooms = :separated_rooms)
-                AND (:all_separated_rooms IS NULL OR all_separated_rooms = :all_separated_rooms)
-                AND (:area IS NULL OR area = :area)
-                AND (:living_area IS NULL OR living_area = :living_area)
-                AND (:kitchen_area IS NULL OR kitchen_area = :kitchen_area)
-                AND (:repair IS NULL OR repair = :repair)
-                AND (:balcony IS NULL OR balcony = :balcony)
-                AND (:number_balcony IS NULL OR number_balcony = :number_balcony)
-                AND (:bath IS NULL OR bath = :bath)
-                AND (:region IS NULL OR region = :region)
-                AND (:city IS NULL OR city = :city)
-                AND (:street IS NULL OR street = :street)
-                AND (:house_number IS NULL OR house_number = :house_number)
-                AND (:city_region IS NULL OR city_region = :city_region)
-                AND (:micro_region IS NULL OR micro_region = :micro_region)
-        """)
-
-        params = {
-            "min_price_usd": filters.min_price_usd,
-            "max_price_usd": filters.max_price_usd,
-            "build_type": filters.build_type,
-            "year_of_build": filters.year_of_build,
-            "floor": filters.floor,
-            "floors_numb": filters.floors_numb,
-            "rooms": filters.rooms,
-            "separated_rooms": filters.separated_rooms,
-            "all_separated_rooms": filters.all_separated_rooms,
-            "area": filters.area,
-            "living_area": filters.living_area,
-            "kitchen_area": filters.kitchen_area,
-            "repair": filters.repair,
-            "balcony": filters.balcony,
-            "number_balcony": filters.number_balcony,
-            "bath": filters.bath,
-            "region": filters.region,
-            "city": filters.city,
-            "street": filters.street,
-            "house_number": filters.house_number,
-            "city_region": filters.city_region,
-            "micro_region": filters.micro_region
-        }
-        result = await self._session.execute(query, params)
+        conditions = []
+        params = {}
+        if filters.min_price_usd is not None:
+            conditions.append("price_usd >= :min_price_usd")
+            params["min_price_usd"] = filters.min_price_usd
+        if filters.max_price_usd is not None:
+            conditions.append("price_usd <= :max_price_usd")
+            params["max_price_usd"] = filters.max_price_usd
+        if filters.build_type is not None:
+            conditions.append("build_type = :build_type")
+            params["build_type"] = filters.build_type
+        if filters.year_of_build is not None:
+            conditions.append("year_of_build = :year_of_build")
+            params["year_of_build"] = filters.year_of_build
+        if filters.floor is not None:
+            conditions.append("floor = :floor")
+            params["floor"] = filters.floor
+        if filters.floors_numb is not None:
+            conditions.append("floors_numb = :floors_numb")
+            params["floors_numb"] = filters.floors_numb
+        if filters.rooms is not None:
+            conditions.append("rooms = :rooms")
+            params["rooms"] = filters.rooms
+        if filters.separated_rooms is not None:
+            conditions.append("separated_rooms = :separated_rooms")
+            params["separated_rooms"] = filters.separated_rooms
+        if filters.all_separated_rooms is not None:
+            conditions.append("all_separated_rooms = :all_separated_rooms")
+            params["all_separated_rooms"] = filters.all_separated_rooms
+        if filters.area is not None:
+            conditions.append("area = :area")
+            params["area"] = filters.area
+        if filters.living_area is not None:
+            conditions.append("living_area = :living_area")
+            params["living_area"] = filters.living_area
+        if filters.kitchen_area is not None:
+            conditions.append("kitchen_area = :kitchen_area")
+            params["kitchen_area"] = filters.kitchen_area
+        if filters.repair is not None:
+            conditions.append("repair = :repair")
+            params["repair"] = filters.repair
+        if filters.balcony is not None:
+            conditions.append("balcony = :balcony")
+            params["balcony"] = filters.balcony
+        if filters.number_balcony is not None:
+            conditions.append("number_balcony = :number_balcony")
+            params["number_balcony"] = filters.number_balcony
+        if filters.bath is not None:
+            conditions.append("bath = :bath")
+            params["bath"] = filters.bath
+        if filters.region is not None:
+            conditions.append("region = :region")
+            params["region"] = filters.region
+        if filters.city is not None:
+            conditions.append("city = :city")
+            params["city"] = filters.city
+        if filters.street is not None:
+            conditions.append("street = :street")
+            params["street"] = filters.street
+        if filters.house_number is not None:
+            conditions.append("house_number = :house_number")
+            params["house_number"] = filters.house_number
+        if filters.city_region is not None:
+            conditions.append("city_region = :city_region")
+            params["city_region"] = filters.city_region
+        if filters.micro_region is not None:
+            conditions.append("micro_region = :micro_region")
+            params["micro_region"] = filters.micro_region
+        query = """
+            SELECT id, title, price_usd, region, city, street, 
+            house_number, area, living_area, kitchen_area, floor,
+            floors_numb FROM objects
+        """
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        # Логирование запроса и параметров
+        print("Generated SQL Query:", query)
+        print("Query Parameters:", params)
+        result = await self._session.execute(text(query), params)
         rows = result.fetchall()
+        print(rows)
         return [SearchResultsDm(
             id=row.id,
             title=row.title,

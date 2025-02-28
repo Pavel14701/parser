@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from typing import Optional
+from typing import Any, Optional
 from decimal import Decimal
 from dataclasses import asdict
+from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationInfo, field_validator
 
 from app.src.domain.entities import ObjectDm, SearchResultsDm
 
@@ -62,8 +63,12 @@ class ObjectSchema(
     def from_dataclass(cls, data: 'ObjectDm') -> 'ObjectSchema':
         return cls(**asdict(data))
 
+    class Config:
+        json_encoders = {
+            Decimal: lambda v: float(v)
+        }
 
-class SearchObjectSchema:
+class SearchObjectSchema(BaseModel):
     id: str 
     title: str 
     price_usd: int
@@ -71,12 +76,22 @@ class SearchObjectSchema:
     city: str 
     street: str 
     house_number: str
-    area: Decimal 
-    living_area: Decimal
-    kitchen_area: Decimal 
+    area: float 
+    living_area: float
+    kitchen_area: float 
     floor: int 
     floors_numb: int
 
+    @field_validator('area', 'living_area', 'kitchen_area', mode='wrap')
+    def validate_fields(cls, value: Any, info: ValidationInfo) -> float:
+        try:
+            return float(value)
+        except (ValueError, TypeError) as e:
+            raise ValueError("Field must be convertible to float") from e
+
     @classmethod
     def from_dataclass(cls, data: 'SearchResultsDm') -> 'SearchObjectSchema':
-        return cls(**asdict(data))
+        data_dict = asdict(data)
+        if isinstance(data_dict['id'], UUID):
+            data_dict['id'] = str(data_dict['id'])
+        return cls(**data_dict)

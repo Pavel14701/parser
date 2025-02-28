@@ -45,14 +45,14 @@ class Controllers:
         interactor: Depends[GetObjectInteractor],
     ) -> JSONResponse:
         try:
-            object_dm = await interactor(uuid=str(object_id))
+            object_dm = await interactor(id=str(object_id))
             if not object_dm:
                 raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Object not found")
-            return JSONResponse(ObjectSchema.from_dataclass(object_dm), status_code=200)
+            return JSONResponse(ObjectSchema.from_dataclass(object_dm).model_dump_json(), status_code=200)
         except Exception as e:
             error_message = f"Exception occurred: {str(e)}"
             traceback_message = "".join(traceback.format_exception(None, e, e.__traceback__))
-            full_error_message = f"{error_message}\n\nTraceback:\n{traceback_message}"
+            full_error_message = f"{error_message}, Traceback:{traceback_message}"
             return JSONResponse(full_error_message, status_code=400)
 
     @inject
@@ -159,7 +159,7 @@ class Controllers:
             )
             object_dms = await search_interactor(filters)
             if object_dms:
-                result = [SearchObjectSchema.from_dataclass(object_dm) for object_dm in object_dms]
+                result = [SearchObjectSchema.from_dataclass(object_dm).model_dump() for object_dm in object_dms]
                 return JSONResponse(result, status_code=200)
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Objects not found")
         except Exception as e:

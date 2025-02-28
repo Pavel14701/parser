@@ -31,7 +31,7 @@ class SaveObject(Protocol):
 class ReadObject(Protocol):
 
     @abstractmethod
-    async def read_by_id(self, id: int) -> Optional[entities.ObjectDm]:
+    async def read_by_id(self, id: str) -> Optional[entities.ObjectDm]:
         ...
 
 
