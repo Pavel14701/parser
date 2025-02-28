@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from typing import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from aiohttp import ClientSession
@@ -10,13 +11,13 @@ class SessionManager:
     def __init__(self):
         self.sessions: dict[int, ClientSession] = {}
 
-    async def create_session(self) -> str:
+    async def create_session(self) -> tuple[int, ClientSession]:
         session = ClientSession()
         session_id = id(session)
         self.sessions[session_id] = session
-        return session_id
+        return session_id, session
 
-    async def close_session(self, session_id: str) -> None:
+    async def close_session(self, session_id: int) -> None:
         session: ClientSession
         if session := self.sessions.pop(session_id, None):
             await session.close()
@@ -27,9 +28,9 @@ class SessionManager:
         self.sessions.clear()
 
     @asynccontextmanager
-    async def manage_sessions(self):
+    async def manage_sessions(self) -> AsyncGenerator[ClientSession, None]:
+        session_id, session = await self.create_session()
         try:
-            session_id = await self.create_session()
-            yield self
+            yield session
         finally:
-            await self.close_session(session_id) 
+            await self.close_session(session_id)

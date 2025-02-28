@@ -5,7 +5,7 @@ from abc import abstractmethod
 from uuid import UUID
 
 from app.src.domain import entities 
-from app.src.application.dto import DbSearchFilters
+from app.src.application.dto import DbSearchFilters, RequestParam, Cookies, Filters
 
 class HttpParser(Protocol):
 
@@ -17,7 +17,7 @@ class HttpParser(Protocol):
 class DataExtractor(Protocol):
 
     @abstractmethod
-    async def extract_data(self, data: str) -> entities.ObjectDm:
+    async def extract_data(self, data: str, request_params: RequestParam) -> entities.ObjectDm:
         ...
 
 
@@ -59,7 +59,12 @@ class FindObjects(Protocol):
 class HttpParser(Protocol):
 
     @abstractmethod
-    async def get_data(self, url: str) -> str:
+    async def get_data(
+        self,
+        request_params: RequestParam,
+        cookies: Optional[Cookies], 
+        filters: Optional[Filters]
+    ) -> str:
         ...
 
 

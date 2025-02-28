@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import Optional
+from decimal import Decimal
 
 from aiohttp import ClientSession
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,21 +25,24 @@ class ObjectsGateway(
         query = text("""
             WITH inserted_object AS (
                 INSERT INTO objects (
-                    id, region, city, street, house_number, city_region, micro_region, latitude, longitude,
+                    id, region, city, street, house_number, city_region, micro_region,
+                    latitude, longitude,
                     price_byn, price_usd, price_m2,
                     build_type, year_of_build, floor, floors_numb, rooms, separated_rooms, all_separated_rooms,
-                    area, living_area, kitchen_area, repair, balcony, number_balcony, bath,
+                    area, living_area, kitchen_area,
+                    repair, balcony, number_balcony, bath,
                     active, url, title, description
                 ) VALUES (
-                    :id, :region, :city, :street, :house_number, :city_region, :micro_region, :latitude, :longitude,
-                    :price_byn, :price_usd, :price_m2,
+                    :id, :region, :city, :street, :house_number, :city_region, :micro_region,
+                    :latitude, :longitude, :price_byn, :price_usd, :price_m2,
                     :build_type, :year_of_build, :floor, :floors_numb, :rooms, :separated_rooms, :all_separated_rooms,
-                    :area, :living_area, :kitchen_area, :repair, :balcony, :number_balcony, :bath,
+                    :area, :living_area, :kitchen_area,
+                    :repair, :balcony, :number_balcony, :bath,
                     :active, :url, :title, :description
                 ) RETURNING id
             )
             INSERT INTO objects_photos (object_id, url)
-            SELECT inserted_object.id, unnest(:pictures) FROM inserted_object;
+            SELECT inserted_object.id, unnest(array[:pictures]) FROM inserted_object;
         """)
         await self._session.execute(
             statement=query,
@@ -73,7 +77,7 @@ class ObjectsGateway(
                 "url": object.url,
                 "title": object.title,
                 "description": object.description,
-                "pictures": object.pictures
+                "pictures": list(object.pictures)
             }
         )
 

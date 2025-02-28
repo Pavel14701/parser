@@ -84,9 +84,9 @@ class DataParserInteractor:
 
     async def __call__(
         self,
+        request_params: dto.RequestParam,
         cookies: Optional[dto.Cookies], 
-        filters: Optional[dto.Filters],
-        request_params: dto.RequestParam
+        filters: Optional[dto.Filters]
     ) -> ObjectDm:
         html_data = await self._parser_gateway.get_data(request_params, filters, cookies)
-        return await self._data_extractor.extract_data(html_data)
+        return await self._data_extractor.extract_data(html_data, request_params)

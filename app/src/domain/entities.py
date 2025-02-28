@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from typing import Optional
+from typing import Optional, List
 from decimal import Decimal
-from dataclasses import dataclass
-
+from dataclasses import dataclass, field
 
 @dataclass(slots=True)
 class Address:
@@ -11,48 +10,78 @@ class Address:
     city: str
     street: str
     house_number: str
-    city_region: Optional[str] = None
-    micro_region: Optional[str] = None
     latitude: Decimal
     longitude: Decimal
-
+    city_region: Optional[str] = field(default=None)
+    micro_region: Optional[str] = field(default=None)
 
 @dataclass(slots=True)
 class Price:
     price_byn: int
     price_usd: int
-    price_m2: Optional[int] = None
-
+    price_m2: Optional[int] = field(default=None)
 
 @dataclass(slots=True)
 class Chars:
     build_type: str
     year_of_build: int
-    floor: Optional[int] = None
-    floors_numb: Optional[int] = None
     rooms: int
     separated_rooms: int
     all_separated_rooms: bool
+    bath: str
     area: Decimal
     living_area: Decimal
     kitchen_area: Decimal
-    repair: Optional[str] = None
     balcony: str
-    number_balcony: Optional[str] = None
-    bath: str
-
+    floor: Optional[int] = field(default=None)
+    floors_numb: Optional[int] = field(default=None)
+    repair: Optional[str] = field(default=None)
+    number_balcony: Optional[str] = field(default=None)
 
 @dataclass(slots=True)
-class ObjectDm(Address, Price, Chars):
+class ObjectDm:
+    #Adress
+    region: str
+    city: str
+    street: str
+    house_number: str
+    latitude: Decimal
+    longitude: Decimal
+    #Price
+    price_byn: int
+    price_usd: int
+    #Chars
+    build_type: str
+    year_of_build: int
+    rooms: int
+    separated_rooms: int
+    all_separated_rooms: bool
+    bath: str
+    area: Decimal
+    living_area: Decimal
+    kitchen_area: Decimal
+    balcony: str
+    #Object
     active: bool
-    id: Optional[str] = None
-    url: Optional[str] = None
     title: str
     description: str
-    pictures: list[Optional[str]]
+    #Adress with None
+    city_region: Optional[str] = field(default=None)
+    micro_region: Optional[str] = field(default=None)
+    #Price with None
+    price_m2: Optional[int] = field(default=None)
+    #Chars with None
+    floor: Optional[int] = field(default=None)
+    floors_numb: Optional[int] = field(default=None)
+    repair: Optional[str] = field(default=None)
+    number_balcony: Optional[str] = field(default=None)
+    #Object with None
+    pictures: List[Optional[str]] = field(default_factory=[])
+    id: Optional[str] = field(default=None)
+    url: Optional[str] = field(default=None)
 
 
-@dataclass(slots=True)
+@dataclass
 class SearchResultsDm:
     id: str 
     title: str 

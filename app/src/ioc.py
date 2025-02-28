@@ -5,9 +5,11 @@ from uuid import uuid4
 
 from aiohttp import ClientSession
 from dishka import Provider, Scope, provide, AnyOf, from_context
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.src.config import Config
+from app.src.config import Config, AppConfig
 from app.src.application import interfaces
 from app.src.application.interactors import (
     SaveObjectInteractor,
@@ -27,8 +29,22 @@ class AppProvider(Provider):
     config = from_context(provides=Config, scope=Scope.APP)
 
     @provide(scope=Scope.APP)
+    def get_app_config(self, config: Config) -> AppConfig:
+        return config.app_config
+
+    @provide(scope=Scope.APP)
     def get_uuid_generator(self) -> interfaces.UUIDGenerator:
         return uuid4
+
+    @provide(scope=Scope.APP)
+    def app(self, config: Config) -> FastAPI:
+        app = FastAPI()
+        app.mount(
+            path=config.static_config.url,
+            app=StaticFiles(directory=config.static_config.directory),
+            name=config.static_config.name
+        )
+        return app
 
     @provide(scope=Scope.APP)
     def get_session_maker(
@@ -56,7 +72,7 @@ class AppProvider(Provider):
         self,
         session_maker: SessionManager
     ) -> AsyncIterable[ClientSession]:
-        async with session_maker as session:
+        async with session_maker.manage_sessions() as session:
             yield session
 
     parser_gateway = provide(

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import contextlib
 from typing import Optional
 import asyncio
 import re
@@ -21,14 +22,16 @@ class HttpParserGateway(interfaces.HttpParser):
 
     async def get_data(
             self,
-            cookies: Optional[dto.Cookies], 
-            filters: Optional[dto.Filters],
             request_params: dto.RequestParam,
+            cookies: Optional[dto.Cookies], 
+            filters: Optional[dto.Filters]
         ) -> str:
+        with contextlib.suppress(Exception):
+            cookies = cookies.to_dict()
         async with self._request_session.get(
             url=request_params.url,
             headers=request_params.headers or None, 
-            cookies = cookies.to_dict() or None
+            cookies = cookies or None
         ) as response:
             if response.status == 200:
                 return await response.text()
@@ -37,8 +40,8 @@ class HttpParserGateway(interfaces.HttpParser):
 
 
 class DataExtracorGateway(interfaces.DataExtractor):
-
-    async def extract_data(self, data: str) -> entities.ObjectDm:
+    
+    async def extract_data(self, data: str, request_param: dto.RequestParam) -> entities.ObjectDm:
         results = await asyncio.gather(
             self._find_title(data),
             self._find_prices(data),
@@ -48,11 +51,14 @@ class DataExtracorGateway(interfaces.DataExtractor):
             self._find_geo(data)
         )
         title, prices, params, description, photos, geo = results
+        print(geo.street)
         return entities.ObjectDm(
+            url=request_param.url,
             build_type=params.build_type,
             year_of_build=params.year_of_build,
             floor=params.floor,
             floors_numb=params.floors_numb,
+            rooms=params.rooms,
             separated_rooms=params.separated_rooms,
             all_separated_rooms=params.all_separated_rooms,
             area=params.area,
@@ -69,6 +75,7 @@ class DataExtracorGateway(interfaces.DataExtractor):
             street=geo.street,
             house_number=geo.house_number,
             city_region=geo.city_region,
+            city=geo.city,
             micro_region=geo.micro_region,
             latitude=geo.latitude,
             longitude=geo.longitude,
@@ -122,8 +129,8 @@ class DataExtracorGateway(interfaces.DataExtractor):
                 lambda x: int(x.strip()),
                 params.get("Etazh_/_etazhnost'").split('/')
             )
-        rooms = int(params["Kolichestvo_komnat"])
-        separated_rooms = int(params.get("Razdel'nyh_komnat"))
+        rooms = int(params.get("Kolichestvo_komnat"))
+        separated_rooms = int(params.get("Razdel'nyh_komnat", 1))
         return entities.Chars(
             build_type=params.get("Tip_doma"),
             year_of_build=int(params.get("God_postrojki")),
@@ -132,13 +139,16 @@ class DataExtracorGateway(interfaces.DataExtractor):
             rooms=rooms,
             separated_rooms=separated_rooms,
             all_separated_rooms=rooms==separated_rooms,
-            area=Decimal(re.sub(pattern, '', params.get("Ploschad'_obschaja"))),
-            living_area=Decimal(re.sub(pattern, '', params.get("Ploschad'_zhilaja"))),
-            kitchen_area=Decimal(re.sub(pattern, '', params.get("Ploschad'_kuhni"))),
+            area=Decimal(self.clean_param(params.get("Ploschad'_obschaja"), pattern)).quantize(Decimal('1.00')),
+            living_area=Decimal(self.clean_param(params.get("Ploschad'_zhilaja"), pattern)).quantize(Decimal('1.00')),
+            kitchen_area=Decimal(self.clean_param(params.get("Ploschad'_kuhni"), pattern)).quantize(Decimal('1.00')),
             bath=params.get("Sanuzel"),
             balcony=params.get("Balkon"),
             repair=params.get("Remont")
         )
+
+    def clean_param(self, value, pattern, default='0'):
+        return re.sub(pattern, '', str(value)) if value is not None else default
 
     async def _find_description(self, data:str) -> str:
         soup = BeautifulSoup(data, 'lxml')
@@ -178,15 +188,18 @@ class DataExtracorGateway(interfaces.DataExtractor):
             translit(k, 'ru', reversed=True).replace(' ', '_'):
             v for k, v in address_info.items()
         }
+        print(address_info)
         latitude, longitude = map(
-            lambda x: int(x.strip()),
+            lambda x: x.strip(),
             address_info.get("Koordinaty").split(', ')
         )
         return entities.Address(
-            redion=address_info.get("Oblast'"),
+            house_number=address_info.get("Nomer_doma"),
+            street=address_info.get("Ulitsa"),
+            region=address_info.get("Oblast'"),
             city=address_info.get("Naselennyj_punkt"),
             city_region=address_info.get("Rajon_goroda"),
             micro_region=address_info.get("Mikrorajon"),
-            latitude=Decimal(latitude),
-            longitude=Decimal(longitude)
+            latitude=Decimal(latitude).quantize(Decimal('1.0000000')),
+            longitude=Decimal(longitude).quantize(Decimal('1.0000000'))
         )

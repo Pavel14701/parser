@@ -25,7 +25,7 @@ class Cookies:
 @dataclass(slots=True)
 class RequestParam:
     url: str
-    headers: dict[str, str]
+    headers: Optional[dict[str, str]]
 
 @dataclass(slots=True)
 class DbSearchFilters:
